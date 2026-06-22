@@ -1,0 +1,6 @@
+{
+  "appId": "com.muhammadyaqoobwako.fasfood",
+  "appName": "Fas_Food",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}

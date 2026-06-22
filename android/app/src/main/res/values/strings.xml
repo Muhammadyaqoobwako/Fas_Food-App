@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Fas_Food</string>
+    <string name="title_activity_main">Fas_Food</string>
+    <string name="package_name">com.muhammadyaqoobwako.fasfood</string>
+    <string name="custom_url_scheme">com.muhammadyaqoobwako.fasfood</string>
+</resources>

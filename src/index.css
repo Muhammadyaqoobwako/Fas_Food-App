@@ -1,45 +1,44 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 /* ===========================
-   CSS VARIABLES (MINIMALIST)
-=========================== */
+   CSS VARIABLES (PREMIUM WARM MINIMALIST)
+ =========================== */
 :root {
-  /* Minimal Monochrome Palette */
-  --bg: #FCFCFC;
+  --bg: #FDFDFD;
   --card-bg: #FFFFFF;
-  --input-bg: #F5F5F5;
+  --input-bg: #F7F7FA;
   
-  --text: #0F0F0F;
-  --text-secondary: #4A4A4A;
-  --text-muted: #8E8E93;
+  --text: #111115;
+  --text-secondary: #5C5C64;
+  --text-muted: #9A9AAB;
   --text-white: #FFFFFF;
 
-  --border: #EAEAEA;
-  --border-med: #D4D4D4;
+  --border: #F0F0F5;
+  --border-med: #E2E2EC;
 
   /* Accent & Status Colors */
-  --primary: #0F0F0F;       /* Uber Eats style black buttons */
-  --primary-light: #2A2A2A;
-  --primary-glow: rgba(0, 0, 0, 0.1);
+  --primary: #FF5A36;       /* Premium food orange */
+  --primary-light: #FFECE8;  /* Subtle orange tint for background active indicators */
+  --primary-glow: rgba(255, 90, 54, 0.12);
   
-  --accent: #10B981;        /* Emerald Green for success/active states */
-  --red: #EF4444;           /* Minimal sleek red */
+  --accent: #10B981;        /* Emerald Green */
+  --red: #EF4444;           /* Coral red */
 
-  /* Sleek Shadows */
-  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.03);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
-  --shadow-elevate: 0 20px 40px rgba(0, 0, 0, 0.08);
+  /* Sleek Premium Shadows */
+  --shadow-xs: 0 1px 2px rgba(255, 90, 54, 0.02), 0 2px 4px rgba(0, 0, 0, 0.02);
+  --shadow-sm: 0 6px 16px rgba(0, 0, 0, 0.025), 0 4px 8px rgba(255, 90, 54, 0.015);
+  --shadow-md: 0 12px 32px rgba(255, 90, 54, 0.04), 0 8px 16px rgba(0, 0, 0, 0.03);
+  --shadow-elevate: 0 24px 48px rgba(255, 90, 54, 0.08), 0 16px 32px rgba(0, 0, 0, 0.04);
 
   /* Refined Radii */
-  --r-sm: 8px;
-  --r-md: 12px;
-  --r-lg: 16px;
-  --r-xl: 24px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
   --r-full: 9999px;
 
-  --trans: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --trans: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  --font: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 /* ===========================
@@ -622,9 +621,7 @@ input, select, textarea { font-family: var(--font); outline: none; }
   grid-template-columns: 1fr 1fr;
   gap: 16px;
   padding: 0 24px;
-}
-
-.food-card {
+}.food-card {
   background: var(--card-bg);
   border-radius: var(--r-lg);
   overflow: hidden;
@@ -633,6 +630,13 @@ input, select, textarea { font-family: var(--font); outline: none; }
   transition: var(--trans);
   display: flex;
   flex-direction: column;
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.food-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-med);
 }
 
 .food-card:active { transform: scale(0.98); }
@@ -648,6 +652,11 @@ input, select, textarea { font-family: var(--font); outline: none; }
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.food-card:hover .food-card-img img {
+  transform: scale(1.06);
 }
 
 .food-card-body { padding: 14px; flex: 1; display: flex; flex-direction: column; }
@@ -659,7 +668,7 @@ input, select, textarea { font-family: var(--font); outline: none; }
 
 /* ===========================
    FOOD CARD — LIST / BROWSE
-=========================== */
+ =========================== */
 .food-list-card {
   display: flex;
   gap: 16px;
@@ -670,7 +679,17 @@ input, select, textarea { font-family: var(--font); outline: none; }
   border: 1px solid var(--border);
   box-shadow: var(--shadow-xs);
   align-items: center;
+  transition: var(--trans);
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+
+.food-list-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-sm);
+  border-color: var(--border-med);
+}
+
+.food-list-card:active { transform: scale(0.99); }
 
 .food-list-img {
   width: 88px;
@@ -983,4 +1002,15 @@ input, select, textarea { font-family: var(--font); outline: none; }
   .phone-frame { width: 100%; height: 100dvh; border-radius: 0; box-shadow: none; }
   .phone-notch { display: none; }
   .status-bar { height: 52px; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
