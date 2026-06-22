@@ -33,6 +33,10 @@ jobs:
       - name: Run Expo Prebuild
         run: npx expo prebuild --platform android --no-install
 
+      - name: Configure Gradle Version
+        run: |
+          sed -i -E 's/gradle-[0-9]+\.[0-9]+(\.[0-9]+)?/gradle-8.5/g' android/gradle/wrapper/gradle-wrapper.properties
+
       - name: Build Android APK with Gradle
         run: |
           cd android
