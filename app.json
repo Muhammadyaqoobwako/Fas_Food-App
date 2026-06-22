@@ -17,6 +17,12 @@
     },
     "web": {
       "backgroundColor": "#121214"
+    },
+    "plugins": [
+      "expo-font"
+    ],
+    "splash": {
+      "backgroundColor": "#121214"
     }
   }
 }
