@@ -26,3 +26,8 @@ dist-ssr
 # Expo
 .expo/*
 npm-shrinkwrap.json
+
+# Secrets & Local credentials
+Usersyaqoob.git-credentials-food
+.env*
+
