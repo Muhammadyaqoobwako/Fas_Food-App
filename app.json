@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Fas Food",
+    "slug": "fas-food",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.muhammadyaqoobwako.fasfood"
+    },
+    "android": {
+      "package": "com.muhammadyaqoobwako.fasfood",
+      "adaptiveIcon": {
+        "backgroundColor": "#121214"
+      }
+    },
+    "web": {
+      "backgroundColor": "#121214"
+    }
+  }
+}
