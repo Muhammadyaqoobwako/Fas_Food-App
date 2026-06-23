@@ -4,7 +4,12 @@ import { IOrder, IOrderItem } from '../../types';
 export class PlaceOrder {
   constructor(private orderRepository: IOrderRepository) {}
 
-  async execute(category: IOrder['category'], items: IOrderItem[]): Promise<IOrder> {
+  async execute(
+    category: IOrder['category'],
+    items: IOrderItem[],
+    customerName?: string,
+    deliveryAddress?: string
+  ): Promise<IOrder> {
     if (!items || items.length === 0) {
       throw new Error('Order must contain at least one item.');
     }
@@ -33,7 +38,10 @@ export class PlaceOrder {
     const orderPayload: Omit<IOrder, 'cashier'> = {
       category,
       items: validatedItems,
-      totalAmount: calculatedTotal
+      totalAmount: calculatedTotal,
+      customerName,
+      deliveryAddress,
+      status: 'pending', // Default status for online/table orders
     };
 
     return this.orderRepository.placeOrder(orderPayload);

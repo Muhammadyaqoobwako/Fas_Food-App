@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Platform,
+  TextInput,
+  Alert,
 } from 'react-native';
 import { COLORS, SPACING, FONTS, globalStyles } from '../styles/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,6 +24,7 @@ interface Props {
 
 export const CartScreen: React.FC<Props> = ({ navigation }) => {
   const {
+    cashier,
     cart,
     cartCategory,
     updateCartItemQuantity,
@@ -31,6 +34,10 @@ export const CartScreen: React.FC<Props> = ({ navigation }) => {
     loading,
   } = useApp();
 
+  const [address, setAddress] = React.useState('');
+
+  const isCustomer = cashier?.role === 'customer';
+
   // Enforce multiplication for order totals
   const subtotal = cart.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
   const vatAmount = subtotal * 0.15; // 15% Standard VAT
@@ -38,12 +45,21 @@ export const CartScreen: React.FC<Props> = ({ navigation }) => {
 
   const handleCheckout = async () => {
     if (cart.length === 0) return;
+    
+    if (isCustomer && !address.trim()) {
+      Alert.alert('Address Required', 'Please enter a delivery address to place your order.');
+      return;
+    }
+
     try {
-      const order = await submitOrder();
+      const order = await submitOrder(
+        isCustomer ? cashier?.username : undefined,
+        isCustomer ? address : undefined
+      );
       // Navigate to order confirmation/receipt simulator screen
       navigation.navigate('OrderPlacement', { order });
     } catch (err: any) {
-      alert(`Checkout failed: ${err.message}`);
+      Alert.alert('Checkout Failed', err.message);
     }
   };
 
@@ -116,6 +132,22 @@ export const CartScreen: React.FC<Props> = ({ navigation }) => {
         )}
       />
 
+      {isCustomer && (
+        <View style={styles.addressCard}>
+          <View style={styles.addressHeader}>
+            <Ionicons name="bicycle-outline" size={18} color={COLORS.primary} />
+            <Text style={styles.addressTitle}>Delivery Drop-off Address</Text>
+          </View>
+          <TextInput
+            style={styles.addressInput}
+            placeholder="Enter drop-off address (e.g. 42 Florida Road)"
+            placeholderTextColor={COLORS.textSecondary}
+            value={address}
+            onChangeText={setAddress}
+          />
+        </View>
+      )}
+
       {/* Cart Totals Summary */}
       <View style={styles.summaryContainer}>
         <View style={styles.summaryRow}>
@@ -141,7 +173,9 @@ export const CartScreen: React.FC<Props> = ({ navigation }) => {
             ) : (
               <>
                 <Ionicons name="checkmark-circle" size={20} color={COLORS.textPrimary} style={{ marginRight: 6 }} />
-                <Text style={globalStyles.buttonText}>Submit Bill</Text>
+                <Text style={globalStyles.buttonText}>
+                  {isCustomer ? 'Place Order' : 'Submit Bill'}
+                </Text>
               </>
             )}
           </TouchableOpacity>
@@ -314,5 +348,36 @@ const styles = StyleSheet.create({
   checkoutBtn: {
     flex: 3,
     backgroundColor: COLORS.primary,
+  },
+  addressCard: {
+    backgroundColor: COLORS.cardBg,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+    marginHorizontal: SPACING.md,
+    marginBottom: SPACING.md,
+    padding: SPACING.md,
+  },
+  addressHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  addressTitle: {
+    fontSize: FONTS.sm,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+    marginLeft: 6,
+  },
+  addressInput: {
+    backgroundColor: COLORS.cardBgElevated,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 8,
+    color: COLORS.textPrimary,
+    fontSize: FONTS.sm,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginTop: 4,
   },
 });

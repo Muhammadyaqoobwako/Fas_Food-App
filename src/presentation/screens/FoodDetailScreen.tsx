@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Platform,
+  Alert,
 } from 'react-native';
 import { COLORS, SPACING, FONTS, globalStyles } from '../styles/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,7 +26,9 @@ interface Props {
 
 export const FoodDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const { item, category } = route.params;
-  const { addToCart } = useApp();
+  const { addToCart, favoriteFoods, toggleFavoriteFood, cashier, logout } = useApp();
+
+  const isFavorite = favoriteFoods.includes(item._id || '');
 
   const [quantity, setQuantity] = useState(1);
   const [selectedOption, setSelectedOption] = useState(item.options?.[0] || '');
@@ -42,6 +45,19 @@ export const FoodDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const subtotal = quantity * itemPrice;
 
   const handleAddToOrder = () => {
+    const isGuest = cashier?.username?.toLowerCase() === 'guest';
+    if (isGuest) {
+      Alert.alert(
+        'Guest Mode',
+        'Guest users can only view products. Please log in to place an order.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Login / Sign Up', onPress: () => logout() }
+        ]
+      );
+      return;
+    }
+
     const orderItem: IOrderItem = {
       description: item.name,
       quantity,
@@ -61,7 +77,6 @@ export const FoodDetailScreen: React.FC<Props> = ({ route, navigation }) => {
     }
 
     addToCart(orderItem, category);
-    alert(`${quantity}x ${item.name} added to cart!`);
     navigation.popToTop(); // Return to Home
   };
 
@@ -137,7 +152,20 @@ export const FoodDetailScreen: React.FC<Props> = ({ route, navigation }) => {
     <ScrollView style={globalStyles.container} contentContainerStyle={styles.scrollContent}>
       {/* Food Details Header */}
       <View style={styles.headerCard}>
-        <Text style={styles.foodName}>{item.name}</Text>
+        <View style={styles.headerRow}>
+          <Text style={styles.foodName}>{item.name}</Text>
+          <TouchableOpacity 
+            style={styles.heartBtn}
+            onPress={() => toggleFavoriteFood(item._id || '')}
+            activeOpacity={0.7}
+          >
+            <Ionicons 
+              name={isFavorite ? "heart" : "heart-outline"} 
+              size={28} 
+              color={isFavorite ? COLORS.primary : COLORS.textSecondary} 
+            />
+          </TouchableOpacity>
+        </View>
         <Text style={styles.foodSize}>Size / Weight: {item.sizeOrWeight}</Text>
         <Text style={styles.priceLabel}>Base Price: <Text style={styles.foodPrice}>R {item.price.toFixed(2)}</Text></Text>
       </View>
@@ -196,7 +224,8 @@ const styles = StyleSheet.create({
     fontSize: FONTS.xxl,
     fontWeight: 'bold',
     color: COLORS.textPrimary,
-    marginBottom: 4,
+    flex: 1,
+    marginRight: SPACING.sm,
   },
   foodSize: {
     fontSize: FONTS.sm,
@@ -315,5 +344,14 @@ const styles = StyleSheet.create({
   addBtn: {
     marginTop: SPACING.md,
     backgroundColor: COLORS.primary,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  heartBtn: {
+    padding: 4,
   },
 });

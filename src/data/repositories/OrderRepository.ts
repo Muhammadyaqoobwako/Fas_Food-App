@@ -19,8 +19,8 @@ export class OrderRepository implements IOrderRepository {
       cashier: cashierName,
     };
 
-    if (!token) {
-      // Offline fallback since there's no auth session token
+    if (!token || token.startsWith('mock-')) {
+      // Offline fallback since there's no auth session token or it's a mock token
       fullOrder.offlineCreatedAt = new Date().toISOString();
       await this.localDataSource.addOfflineOrder(fullOrder);
       return fullOrder;
@@ -42,7 +42,7 @@ export class OrderRepository implements IOrderRepository {
     const token = await this.localDataSource.getToken();
     const offlineOrders = await this.localDataSource.getOfflineOrders();
 
-    if (!token) {
+    if (!token || token.startsWith('mock-')) {
       return offlineOrders;
     }
 
@@ -58,7 +58,7 @@ export class OrderRepository implements IOrderRepository {
     const token = await this.localDataSource.getToken();
     const offlineOrders = await this.localDataSource.getOfflineOrders();
 
-    if (!token) {
+    if (!token || token.startsWith('mock-')) {
       return this.calculateMockSummary(offlineOrders);
     }
 
@@ -71,7 +71,7 @@ export class OrderRepository implements IOrderRepository {
 
   async syncOfflineOrders(orders?: IOrder[]): Promise<number> {
     const token = await this.localDataSource.getToken();
-    if (!token) return 0;
+    if (!token || token.startsWith('mock-')) return 0;
 
     const offlineOrders = orders || await this.localDataSource.getOfflineOrders();
     if (offlineOrders.length === 0) return 0;

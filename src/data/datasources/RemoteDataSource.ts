@@ -1,7 +1,8 @@
-import { ICashier, IOrder, ISalesSummary } from '../../types';
+import { ICashier, IOrder, ISalesSummary, UserRole, IMenuItem } from '../../types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export class RemoteDataSource {
-  private baseUrl = 'https://project-55lvo.vercel.app/api'; // Live Vercel API backend
+  private baseUrl = 'http://localhost:5000/api'; // Local API server
 
   constructor(customBaseUrl?: string) {
     if (customBaseUrl) {
@@ -35,11 +36,126 @@ export class RemoteDataSource {
     }
   }
 
+  // Mock users database for local/demo authentication
+  private mockUsers: Record<string, { token: string; cashier: ICashier }> = {
+    customer: {
+      token: 'mock-customer-token',
+      cashier: {
+        id: 'cust-1',
+        username: 'Customer',
+        role: 'customer',
+        email: 'customer@fasfood.co.za',
+        joinedAt: '2025-01-15T00:00:00Z',
+      },
+    },
+    manager: {
+      token: 'mock-manager-token',
+      cashier: {
+        id: 'mgr-1',
+        username: 'Manager',
+        role: 'manager',
+        email: 'manager@fasfood.co.za',
+        joinedAt: '2024-06-01T00:00:00Z',
+      },
+    },
+    driver: {
+      token: 'mock-driver-token',
+      cashier: {
+        id: 'drv-1',
+        username: 'Driver',
+        role: 'driver',
+        email: 'driver@fasfood.co.za',
+        joinedAt: '2025-03-10T00:00:00Z',
+      },
+    },
+    guest: {
+      token: 'mock-guest-token',
+      cashier: {
+        id: 'guest-1',
+        username: 'Guest',
+        role: 'customer',
+        email: '',
+        joinedAt: new Date().toISOString(),
+      },
+    },
+    owner: {
+      token: 'mock-owner-token',
+      cashier: {
+        id: 'own-1',
+        username: 'Owner',
+        role: 'owner',
+        email: 'owner@fasfood.co.za',
+        joinedAt: '2025-02-28T00:00:00Z',
+        restaurantName: 'Fas Food Palace',
+      },
+    },
+  };
+
+  private async loadMockUsers(): Promise<void> {
+    try {
+      const saved = await AsyncStorage.getItem('store_mock_users_v1');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        this.mockUsers = {
+          ...this.mockUsers,
+          ...parsed,
+        };
+      }
+    } catch (err) {
+      console.error('Failed to load mock users:', err);
+    }
+  }
+
+  private async saveMockUsers(additionalUsers: Record<string, any>): Promise<void> {
+    try {
+      const saved = await AsyncStorage.getItem('store_mock_users_v1');
+      const currentSaved = saved ? JSON.parse(saved) : {};
+      const updated = {
+        ...currentSaved,
+        ...additionalUsers,
+      };
+      await AsyncStorage.setItem('store_mock_users_v1', JSON.stringify(updated));
+    } catch (err) {
+      console.error('Failed to save mock users:', err);
+    }
+  }
+
   async login(username: string, password: string): Promise<{ token: string; cashier: ICashier }> {
+    await this.loadMockUsers();
+    const mockUser = this.mockUsers[username.toLowerCase()];
+    if (mockUser) {
+      return mockUser;
+    }
     return this.request<{ token: string; cashier: ICashier }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ username, password }),
     });
+  }
+
+  async register(
+    fullName: string,
+    email: string,
+    username: string,
+    password: string,
+    role: UserRole = 'customer',
+    restaurantName?: string
+  ): Promise<{ token: string; cashier: ICashier }> {
+    await this.loadMockUsers();
+    // Store as a new mock user for the session
+    const newUser = {
+      token: `mock-${username}-token-${Date.now()}`,
+      cashier: {
+        id: `user-${Date.now()}`,
+        username: fullName || username,
+        role,
+        email,
+        joinedAt: new Date().toISOString(),
+        restaurantName,
+      },
+    };
+    this.mockUsers[username.toLowerCase()] = newUser;
+    await this.saveMockUsers({ [username.toLowerCase()]: newUser });
+    return newUser;
   }
 
   async placeOrder(order: Omit<IOrder, 'cashier'>, token: string): Promise<IOrder> {
@@ -75,5 +191,34 @@ export class RemoteDataSource {
       method: 'POST',
       body: JSON.stringify({ orders }),
     }, token);
+  }
+
+  async getMenuItems(): Promise<IMenuItem[]> {
+    const response = await this.request<{ success: boolean; data: IMenuItem[] }>('/menu', {
+      method: 'GET',
+    });
+    return response.data;
+  }
+
+  async createMenuItem(item: Omit<IMenuItem, '_id'>, token: string): Promise<IMenuItem> {
+    const response = await this.request<{ success: boolean; data: IMenuItem }>('/menu', {
+      method: 'POST',
+      body: JSON.stringify(item),
+    }, token);
+    return response.data;
+  }
+
+  async deleteMenuItem(id: string, token: string): Promise<void> {
+    await this.request<{ success: boolean }>('/menu/' + id, {
+      method: 'DELETE',
+    }, token);
+  }
+
+  async updateOrder(id: string, updates: Partial<IOrder>, token: string): Promise<IOrder> {
+    const response = await this.request<{ success: boolean; data: IOrder }>('/orders/' + id, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    }, token);
+    return response.data;
   }
 }

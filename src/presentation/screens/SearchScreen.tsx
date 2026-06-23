@@ -6,11 +6,14 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  Image,
+  Platform,
 } from 'react-native';
 import { COLORS, SPACING, FONTS, globalStyles } from '../styles/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { useApp } from '../state/AppContext';
 
 type SearchScreenNavigationProp = StackNavigationProp<RootStackParamList, 'MainTabs'>;
 
@@ -19,37 +22,17 @@ interface Props {
 }
 
 export const SearchScreen: React.FC<Props> = ({ navigation }) => {
+  const { menuItems } = useApp();
   const [query, setQuery] = useState('');
 
-  // Complete list of all menu items across all categories
-  const allMenuItems = [
-    { id: 's1', name: 'Sprite Regular', price: 150.0, sizeOrWeight: '300ml', options: ['Cold', 'Warm'], category: 'Sprite' as const },
-    { id: 's2', name: 'Sprite Duo Pack', price: 300.0, sizeOrWeight: '1000ml', options: ['Cold', 'Warm'], category: 'Sprite' as const },
-    { id: 's3', name: 'Sprite Zero', price: 160.0, sizeOrWeight: '300ml', options: ['Cold'], category: 'Sprite' as const },
-    { id: 'co1', name: 'Coke Regular', price: 150.0, sizeOrWeight: '330ml', options: ['Regular', 'Diet'], category: 'Coke' as const },
-    { id: 'co2', name: 'Coke Light', price: 160.0, sizeOrWeight: '330ml', options: ['Diet'], category: 'Coke' as const },
-    { id: 'co3', name: 'Coke Share Pack', price: 290.0, sizeOrWeight: '1000ml', options: ['Regular', 'Diet'], category: 'Coke' as const },
-    { id: 'b1', name: 'Beef Burger', price: 450.0, sizeOrWeight: '150g', options: ['Chips', 'Salad', 'None'], category: 'Burger' as const },
-    { id: 'b2', name: 'Chicken Cheeseburger', price: 490.0, sizeOrWeight: '180g', options: ['Chips', 'Salad', 'None'], category: 'Burger' as const },
-    { id: 'b3', name: 'Double King Burger', price: 650.0, sizeOrWeight: '300g', options: ['Chips', 'Salad'], category: 'Burger' as const },
-    { id: 'p1', name: 'Regina Pizza', price: 550.0, sizeOrWeight: 'Large', options: ['Thin Crust', 'Thick Crust'], category: 'Pizza' as const },
-    { id: 'p2', name: 'Margherita Pizza', price: 480.0, sizeOrWeight: 'Medium', options: ['Thin Crust', 'Thick Crust'], category: 'Pizza' as const },
-    { id: 'p3', name: 'Pepperoni Passion', price: 620.0, sizeOrWeight: 'Large', options: ['Thin Crust', 'Gluten Free'], category: 'Pizza' as const },
-    { id: 'i1', name: 'Vanilla Soft Serve', price: 120.0, sizeOrWeight: 'Cup', options: ['White', 'Chocolate Dip'], category: 'IceCream' as const },
-    { id: 'i2', name: 'Strawberry Sundae', price: 220.0, sizeOrWeight: 'Glass', options: ['Strawberry Flavour', 'Vanilla Flavour'], category: 'IceCream' as const },
-    { id: 'i3', name: 'Chocolate Feast', price: 250.0, sizeOrWeight: 'Tub', options: ['Chocolate Flavour'], category: 'IceCream' as const },
-    { id: 'ch1', name: 'Regular Chips', price: 120.0, sizeOrWeight: 'Small', options: ['Salt & Vinegar', 'Tomato Sauce', 'Plain'], category: 'Chips' as const },
-    { id: 'ch2', name: 'Large Share Chips', price: 240.0, sizeOrWeight: 'Large', options: ['Salt & Vinegar', 'Tomato Sauce', 'Plain'], category: 'Chips' as const },
-    { id: 'ch3', name: 'Jumbo Slap Chips', price: 320.0, sizeOrWeight: 'Jumbo', options: ['Salt & Vinegar', 'Tomato Sauce', 'Plain'], category: 'Chips' as const },
-  ];
-
-  const filteredItems = allMenuItems.filter(item =>
+  const filteredItems = menuItems.filter(item =>
     item.name.toLowerCase().includes(query.toLowerCase()) ||
     item.category.toLowerCase().includes(query.toLowerCase())
   );
 
   return (
     <View style={globalStyles.container}>
+      {/* Search Input Bar */}
       <View style={styles.searchBarContainer}>
         <Ionicons name="search" size={20} color={COLORS.textSecondary} style={styles.searchIcon} />
         <TextInput
@@ -62,9 +45,10 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
         />
       </View>
 
+      {/* Results List */}
       <FlatList
         data={filteredItems}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item._id || ''}
         contentContainerStyle={styles.listContainer}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
@@ -76,16 +60,29 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
           <TouchableOpacity
             style={styles.resultCard}
             onPress={() => navigation.navigate('FoodDetail', { item, category: item.category })}
+            activeOpacity={0.8}
           >
+            {/* Visual Thumbnail */}
+            {item.imageUrl ? (
+              <Image source={{ uri: item.imageUrl }} style={styles.resultImg} />
+            ) : (
+              <View style={styles.resultImgPlaceholder}>
+                <Ionicons name="fast-food-outline" size={20} color={COLORS.textSecondary} />
+              </View>
+            )}
+
+            {/* Details */}
             <View style={styles.detailsColumn}>
               <Text style={styles.itemName}>{item.name}</Text>
               <View style={styles.badgeRow}>
-                <View style={[styles.categoryBadge, { backgroundColor: COLORS.border }]}>
+                <View style={[styles.categoryBadge, { backgroundColor: COLORS.cardBgElevated }]}>
                   <Text style={styles.categoryBadgeText}>{item.category}</Text>
                 </View>
                 <Text style={styles.sizeText}>{item.sizeOrWeight}</Text>
               </View>
             </View>
+
+            {/* Price */}
             <Text style={styles.priceText}>R {item.price.toFixed(2)}</Text>
           </TouchableOpacity>
         )}
@@ -117,20 +114,46 @@ const styles = StyleSheet.create({
   listContainer: {
     padding: SPACING.md,
     paddingTop: 0,
+    paddingBottom: SPACING.xl * 2,
   },
   resultCard: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: COLORS.cardBg,
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: COLORS.border,
-    padding: SPACING.md,
+    padding: SPACING.sm,
     marginBottom: SPACING.md,
+    ...Platform.select({
+      ios: {
+        shadowColor: COLORS.shadowColor,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  resultImg: {
+    width: 55,
+    height: 55,
+    borderRadius: 10,
+  },
+  resultImgPlaceholder: {
+    width: 55,
+    height: 55,
+    borderRadius: 10,
+    backgroundColor: COLORS.cardBgElevated,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   detailsColumn: {
     flex: 1,
+    marginLeft: SPACING.md,
+    justifyContent: 'center',
   },
   itemName: {
     fontSize: FONTS.md,
@@ -147,10 +170,12 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     paddingHorizontal: 8,
     marginRight: SPACING.sm,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   categoryBadgeText: {
     color: COLORS.textSecondary,
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 'bold',
     textTransform: 'uppercase',
   },
@@ -163,6 +188,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.secondary,
     marginLeft: SPACING.md,
+    marginRight: 4,
   },
   emptyContainer: {
     alignItems: 'center',
