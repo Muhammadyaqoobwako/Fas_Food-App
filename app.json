@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
+    "icon": "./assets/icon.png",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.muhammadyaqoobwako.fasfood"
@@ -12,10 +13,12 @@
     "android": {
       "package": "com.muhammadyaqoobwako.fasfood",
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#121214"
       }
     },
     "web": {
+      "favicon": "./assets/favicon.png",
       "backgroundColor": "#121214"
     },
     "plugins": [
@@ -23,6 +26,12 @@
     ],
     "splash": {
       "backgroundColor": "#121214"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e16fd7a9-2085-4cc2-ac1b-a1b6d2008667"
+      }
+    },
+    "owner": "m_yaqoob"
   }
 }
