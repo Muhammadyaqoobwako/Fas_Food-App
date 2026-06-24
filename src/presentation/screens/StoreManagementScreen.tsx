@@ -339,6 +339,7 @@ export const StoreManagementScreen = () => {
         </View>
         {activeTab === 'catalog' && (
           <TouchableOpacity
+            testID="add-toggle-button"
             style={[styles.addToggleBtn, showAddForm && styles.addToggleBtnCancel]}
             onPress={() => setShowAddForm(!showAddForm)}
           >
@@ -426,6 +427,7 @@ export const StoreManagementScreen = () => {
                   {(['Burger', 'Pizza', 'Chips', 'Sprite', 'Coke', 'IceCream'] as const).map(cat => (
                     <TouchableOpacity
                       key={cat}
+                      testID={`category-btn-${cat}`}
                       style={[styles.catPickerBtn, category === cat && styles.catPickerBtnActive]}
                       onPress={() => setCategory(cat)}
                     >
@@ -503,7 +505,7 @@ export const StoreManagementScreen = () => {
               </View>
             }
             renderItem={({ item }) => (
-              <View style={styles.productCard}>
+              <View testID={`product-card-${item.name}`} style={styles.productCard}>
                 {item.imageUrl ? (
                   <Image source={{ uri: item.imageUrl }} style={styles.productImg} />
                 ) : (
@@ -524,6 +526,7 @@ export const StoreManagementScreen = () => {
                 </View>
 
                 <TouchableOpacity
+                  testID="delete-product-button"
                   style={styles.deleteBtn}
                   onPress={() => handleDeleteProduct(item._id || '', item.name)}
                 >
