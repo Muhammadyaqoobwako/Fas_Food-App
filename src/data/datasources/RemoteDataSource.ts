@@ -2,7 +2,7 @@ import { ICashier, IOrder, ISalesSummary, UserRole, IMenuItem } from '../../type
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export class RemoteDataSource {
-  private baseUrl = 'http://localhost:5000/api'; // Local API server
+  private baseUrl = 'https://project-55lvo.vercel.app/api'; // Live Vercel API server
 
   constructor(customBaseUrl?: string) {
     if (customBaseUrl) {
@@ -121,15 +121,28 @@ export class RemoteDataSource {
   }
 
   async login(username: string, password: string): Promise<{ token: string; cashier: ICashier }> {
-    await this.loadMockUsers();
-    const mockUser = this.mockUsers[username.toLowerCase()];
-    if (mockUser) {
-      return mockUser;
+    // For default/built-in mock users, return them immediately
+    const builtInMocks = ['customer', 'manager', 'driver', 'guest', 'owner'];
+    if (builtInMocks.includes(username.toLowerCase())) {
+      await this.loadMockUsers();
+      const mockUser = this.mockUsers[username.toLowerCase()];
+      if (mockUser) return mockUser;
     }
-    return this.request<{ token: string; cashier: ICashier }>('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ username, password }),
-    });
+
+    try {
+      return await this.request<{ token: string; cashier: ICashier }>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ username, password }),
+      });
+    } catch (err: any) {
+      console.warn('Login API failed, checking local mock users:', err.message);
+      await this.loadMockUsers();
+      const mockUser = this.mockUsers[username.toLowerCase()];
+      if (mockUser) {
+        return mockUser;
+      }
+      throw err;
+    }
   }
 
   async forgotPassword(email: string): Promise<{ message: string }> {
@@ -194,22 +207,40 @@ export class RemoteDataSource {
     role: UserRole = 'customer',
     restaurantName?: string
   ): Promise<{ token: string; cashier: ICashier }> {
-    await this.loadMockUsers();
-    // Store as a new mock user for the session
-    const newUser = {
-      token: `mock-${username}-token-${Date.now()}`,
-      cashier: {
-        id: `user-${Date.now()}`,
-        username: fullName || username,
-        role,
-        email,
-        joinedAt: new Date().toISOString(),
-        restaurantName,
-      },
-    };
-    this.mockUsers[username.toLowerCase()] = newUser;
-    await this.saveMockUsers({ [username.toLowerCase()]: newUser });
-    return newUser;
+    try {
+      const response = await this.request<{ success: boolean; data: { token: string; cashier: ICashier } }>('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          username,
+          password,
+          role,
+          restaurantName,
+          email
+        }),
+      });
+      if (response && response.data) {
+        return response.data;
+      }
+      throw new Error('Invalid response from server.');
+    } catch (err: any) {
+      console.warn('Registration API failed, falling back to mock mode:', err.message);
+      await this.loadMockUsers();
+      // Store as a new mock user for the session
+      const newUser = {
+        token: `mock-${username}-token-${Date.now()}`,
+        cashier: {
+          id: `user-${Date.now()}`,
+          username: fullName || username,
+          role,
+          email,
+          joinedAt: new Date().toISOString(),
+          restaurantName,
+        },
+      };
+      this.mockUsers[username.toLowerCase()] = newUser;
+      await this.saveMockUsers({ [username.toLowerCase()]: newUser });
+      return newUser;
+    }
   }
 
   async placeOrder(order: Omit<IOrder, 'cashier'>, token: string): Promise<IOrder> {
