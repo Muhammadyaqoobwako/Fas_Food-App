@@ -27,10 +27,12 @@ import { FavoritesScreen } from '../screens/FavoritesScreen';
 import { StoreManagementScreen } from '../screens/StoreManagementScreen';
 import { ChatScreen } from '../screens/ChatScreen';
 import { RestaurantDetailScreen } from '../screens/RestaurantDetailScreen';
+import { ForgotPasswordScreen } from '../screens/ForgotPasswordScreen';
 
 export type RootStackParamList = {
   Login: undefined;
   SignUp: undefined;
+  ForgotPassword: undefined;
   MainTabs: undefined;
   FoodListing: { category: 'Sprite' | 'Coke' | 'Burger' | 'Pizza' | 'IceCream' | 'Chips' };
   FoodDetail: { item: any; category: 'Sprite' | 'Coke' | 'Burger' | 'Pizza' | 'IceCream' | 'Chips' };
@@ -116,6 +118,11 @@ const TabNavigator = () => {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
+        headerLeft: () => (
+          <View style={{ marginLeft: 15, width: 34, height: 34, borderRadius: 17, borderWidth: 1.5, borderColor: COLORS.primary, alignItems: 'center', justifyContent: 'center', backgroundColor: '#1A1A1E' }}>
+            <Ionicons name="restaurant" size={16} color={COLORS.primary} />
+          </View>
+        ),
       })}
     >
       {/* Dynamic Tabs based on User Role */}
@@ -192,6 +199,11 @@ export const AppNavigator = () => {
             <Stack.Screen
               name="SignUp"
               component={SignUpScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="ForgotPassword"
+              component={ForgotPasswordScreen}
               options={{ headerShown: false }}
             />
           </>

@@ -132,6 +132,60 @@ export class RemoteDataSource {
     });
   }
 
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    try {
+      return await this.request<{ message: string }>('/auth/forgot-password', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      });
+    } catch (err: any) {
+      await this.loadMockUsers();
+      const userExists = Object.values(this.mockUsers).some(u => u.cashier.email?.toLowerCase() === email.toLowerCase());
+      const presetEmails = ['customer@fasfood.co.za', 'manager@fasfood.co.za', 'driver@fasfood.co.za', 'owner@fasfood.co.za'];
+      const isPreset = presetEmails.includes(email.toLowerCase());
+
+      if (!userExists && !isPreset) {
+        throw new Error('No account registered with this email address.');
+      }
+
+      const mockOtp = '123456';
+      await AsyncStorage.setItem('mock_reset_otp', JSON.stringify({ email: email.toLowerCase(), otp: mockOtp, expires: Date.now() + 10 * 60 * 1000 }));
+      
+      if (typeof alert !== 'undefined') {
+        alert(`[DEMO MODE] Reset OTP code sent to your email is: ${mockOtp}`);
+      } else {
+        console.log(`[DEMO MODE] OTP for ${email}: ${mockOtp}`);
+      }
+
+      return { message: 'OTP sent successfully to registered email (Mock Mode).' };
+    }
+  }
+
+  async resetPassword(email: string, otp: string, newPassword: string): Promise<{ message: string }> {
+    try {
+      return await this.request<{ message: string }>('/auth/reset-password', {
+        method: 'POST',
+        body: JSON.stringify({ email, otp, newPassword }),
+      });
+    } catch (err: any) {
+      const cachedOtpStr = await AsyncStorage.getItem('mock_reset_otp');
+      if (!cachedOtpStr) {
+        throw new Error('Invalid or expired OTP.');
+      }
+      const cached = JSON.parse(cachedOtpStr);
+      if (cached.email !== email.toLowerCase() || cached.otp !== otp) {
+        throw new Error('Invalid OTP code.');
+      }
+      if (cached.expires < Date.now()) {
+        throw new Error('OTP code has expired.');
+      }
+
+      await this.loadMockUsers();
+      await AsyncStorage.removeItem('mock_reset_otp');
+      return { message: 'Password has been reset successfully (Mock Mode).' };
+    }
+  }
+
   async register(
     fullName: string,
     email: string,

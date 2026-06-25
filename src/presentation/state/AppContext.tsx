@@ -20,6 +20,8 @@ interface AppContextType {
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
   register: (fullName: string, email: string, username: string, password: string, role?: UserRole, restaurantName?: string) => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (email: string, otp: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
   addToCart: (item: IOrderItem, category: IOrder['category']) => void;
   updateCartItemQuantity: (index: number, quantity: number) => void;
@@ -264,6 +266,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       await loadOrdersAndQueue();
     } catch (err: any) {
       throw new Error(err.message || 'Registration failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const forgotPassword = async (email: string) => {
+    setLoading(true);
+    try {
+      await remoteDS.forgotPassword(email);
+    } catch (err: any) {
+      throw new Error(err.message || 'Failed to request OTP.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetPassword = async (email: string, otp: string, newPassword: string) => {
+    setLoading(true);
+    try {
+      await remoteDS.resetPassword(email, otp, newPassword);
+    } catch (err: any) {
+      throw new Error(err.message || 'Failed to reset password.');
     } finally {
       setLoading(false);
     }
@@ -594,6 +618,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         loading,
         login,
         register,
+        forgotPassword,
+        resetPassword,
         logout,
         addToCart,
         updateCartItemQuantity,
